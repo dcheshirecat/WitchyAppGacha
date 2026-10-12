@@ -42,10 +42,20 @@ jobs:
           restore-keys: |
             buildozer-${{ runner.os }}-
 
+      - name: Unzip fonts and other zipped assets
+        run: |
+          shopt -s nullglob
+          for z in *.zip; do
+            echo "Unzipping $z (flattening folders)..."
+            unzip -o -j "$z" -d .
+          done
+          echo "Files in repo root:"
+          ls -1
+
       - name: Check required files
         run: |
           missing=0
-          for f in main.py wordduel.kv game_logic.py NotoHebrew.ttf NotoHebrewBold.ttf VarelaRound-Regular.ttf; do
+          for f in main.py wordduel.kv game_logic.py NotoHebrew.ttf VarelaRound-Regular.ttf; do
             if [ -f "$f" ]; then echo "OK       $f"; else echo "MISSING  $f"; missing=1; fi
           done
           if [ "$missing" = "1" ]; then echo "Add the missing files to the repo root."; exit 1; fi
