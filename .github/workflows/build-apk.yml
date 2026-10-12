@@ -68,9 +68,30 @@ jobs:
           if [ "$missing" = "1" ]; then echo "Add the missing files to the repo root."; exit 1; fi
 
       - name: Build APK
+        shell: bash
         env:
           BUILDOZER_WARN_ON_ROOT: "0"
-        run: buildozer android debug
+        run: buildozer android debug 2>&1 | tee build.log
+
+      - name: Show real errors (only runs if the build failed)
+        if: failure()
+        shell: bash
+        run: |
+          echo "=== Lines mentioning errors (Cython performance hints filtered out) ==="
+          grep -nE "Error|ERROR|Traceback|FAILED|fatal|No such file|not found|Command failed" build.log \
+            | grep -viE "performance hint|Exception check|noexcept|DEBUG.*Possible solutions" \
+            | tail -n 60 || true
+          echo
+          echo "=== Last 50 lines of the log ==="
+          tail -n 50 build.log
+
+      - name: Upload full build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
