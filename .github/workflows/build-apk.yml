@@ -54,10 +54,17 @@ jobs:
 
       - name: Check required files
         run: |
+          shopt -s nullglob
           missing=0
-          for f in main.py wordduel.kv game_logic.py NotoHebrew.ttf VarelaRound-Regular.ttf; do
+          for f in main.py wordduel.kv game_logic.py VarelaRound-Regular.ttf; do
             if [ -f "$f" ]; then echo "OK       $f"; else echo "MISSING  $f"; missing=1; fi
           done
+          hebrew=(NotoSansHebrew*.ttf)
+          if [ ${#hebrew[@]} -gt 0 ]; then
+            for f in "${hebrew[@]}"; do echo "OK       $f  (Noto Sans Hebrew)"; done
+          else
+            echo "MISSING  NotoSansHebrew*.ttf  (Noto Sans Hebrew font)"; missing=1
+          fi
           if [ "$missing" = "1" ]; then echo "Add the missing files to the repo root."; exit 1; fi
 
       - name: Build APK
